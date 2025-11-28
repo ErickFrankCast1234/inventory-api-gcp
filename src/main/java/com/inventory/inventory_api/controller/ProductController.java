@@ -22,17 +22,27 @@ public class ProductController {
      * Paginación: page, size
      */
     @GetMapping
-    public ResponseEntity<Page<product>> getProducts(
+    public ResponseEntity<PageResponse<product>> getProducts(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) Integer minStock,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Page<product> result = productService.getProducts(
-                category, minPrice, maxPrice, minStock, page, size);
 
-        return ResponseEntity.ok(result);
+        Page<product> result = productService.getProducts(
+                category, minPrice, maxPrice, minStock, page, size
+        );
+
+        PageResponse<product> response = new PageResponse<>(
+                result.getContent(),
+                page,
+                size,
+                result.getTotalElements(),
+                result.getTotalPages()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -44,7 +54,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<product> createProduct(@Valid @RequestBody product p) {
         product saved = productService.createProduct(p);
-        return ResponseEntity.ok(saved); // ← AHORA ES 200 OK
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/{id}")
@@ -60,7 +70,6 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
 
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
-
 }
