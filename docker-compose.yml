@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_inventory
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: inventorydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - inventory-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inventorydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  inventory-api:
+    build: .
+    container_name: inventory_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/inventorydb
+      DB_USERNAME: postgres
+      DB_PASSWORD: admin
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - inventory-network
+
+volumes:
+  pgdata:
+
+networks:
+  inventory-network:
+    driver: bridge
